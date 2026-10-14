@@ -77,7 +77,10 @@ function setStatus(msg) {
 // =====================================================================
 //  PART B — YOUR ARTWORK
 // =====================================================================
-
+const PALETTE = ["#e63946", "#f4a261", "#e9c46a", "#2a9d8f", "#8ab6d6", "#f1faee", "#6d3b8c", "#1d3557"];
+let circles = [];
+let growing = null;
+let wasPinching = false;
 function setup() {
   createCanvas(windowWidth, windowHeight);
   noStroke();
@@ -89,7 +92,6 @@ function startExperience() {
   video = createCapture(VIDEO);
   video.size(640, 480);
   video.hide();
-
   select("#intro").hide();
   started = true;
   loadHandLandmarker();
@@ -103,55 +105,92 @@ function draw() {
   }
 
   updateHands();
-
   if (showCamera === true) {
     drawCamera();
   }
 
-  // 确保有手的数据
+  for (let i = 0; i < circles.length; i++) {
+    drawKandinskyCircle(circles[i]);
+  }
+
   if (!hands || hands.length === 0) {
+    growing = null;
+    wasPinching = false;
     return;
   }
 
-  // 遍历每一只手，实现多点触控
-  for (let hand of hands) {
-    if (!hand || hand.length < 10) {
-      continue;
-    }
+  const hand = hands[0];
+  const wrist = hand[WRIST];
+  const palm = hand[MIDDLE_BASE];
+  const thumb = hand[THUMB_TIP];
+  const index = hand[INDEX_TIP];
 
-    const wrist = hand[WRIST];
-    const palm = hand[MIDDLE_BASE];
-    const thumb = hand[THUMB_TIP];
-    const index = hand[INDEX_TIP];
+  const handSize = max(dist(wrist.x, wrist.y, palm.x, palm.y), 1);
+  const pinchDist = dist(thumb.x, thumb.y, index.x, index.y);
+  const isPinching = pinchDist / handSize < 0.3;
 
-    if (!wrist || !palm || !thumb || !index) {
-      continue;
-    }
+  const px = (thumb.x + index.x) / 2;
+  const py = (thumb.y + index.y) / 2;
 
-    const handSize = dist(wrist.x, wrist.y, palm.x, palm.y);
-    const pinchDistance = dist(thumb.x, thumb.y, index.x, index.y);
-    const isPinching = handSize > 0 && pinchDistance / handSize < 0.3;
-
-    const px = (thumb.x + index.x) / 2;
-    const py = (thumb.y + index.y) / 2;
-
-    noFill();
-    stroke(241, 234, 216, 180);
-    strokeWeight(2);
-    circle(px, py, isPinching ? 16 : 34);
+  if (isPinching && !wasPinching) {
+    growing = {
+      x: px,
+      y: py,
+      r: 10,
+      colors: shuffle(PALETTE).slice(0, 3)
+    };
   }
-  
-  // 恢复默认设置
+
+  if (isPinching && growing !== null) {
+    growing.r = min(growing.r + 2.5, 260);
+    growing.x = lerp(growing.x, px, 0.3);
+    growing.y = lerp(growing.y, py, 0.3);
+    drawKandinskyCircle(growing);
+  }
+
+  if (!isPinching && wasPinching && growing !== null) {
+    circles.push(growing);
+    growing = null;
+  }
+
+  wasPinching = isPinching;
+
+  noFill();
+  stroke(241, 234, 216, 180);
+  strokeWeight(2);
+  circle(px, py, isPinching ? 16 : 34);
   noStroke();
-  fill(255);
 }
 
 function keyPressed() {
   if (key === "v" || key === "V") {
     showCamera = !showCamera;
+  } else if (key === "c" || key === "C") {
+    circles = [];
+  } else if (key === "s" || key === "S") {
+    saveCanvas("my-kandinsky", "png");
   }
+  return false;
 }
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+}
+function drawKandinskyCircle(c) {
+  noStroke();
+
+  let halo = color(c.colors[0]);
+  halo.setAlpha(70);
+  fill(halo);
+  circle(c.x, c.y, c.r * 2.4);
+
+  let body = color(c.colors[1]);
+  body.setAlpha(215);
+  fill(body);
+  circle(c.x, c.y, c.r * 2);
+
+  let core = color(c.colors[2]);
+  core.setAlpha(230);
+  fill(core);
+  circle(c.x + c.r * 0.18, c.y - c.r * 0.12, c.r * 0.9);
 }
