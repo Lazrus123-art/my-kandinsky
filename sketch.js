@@ -1,4 +1,3 @@
-
 // =====================================================================
 //  STARTER FILE
 //  PART A (below) is the hand-tracking engine. Don't change it.
@@ -77,12 +76,7 @@ function setStatus(msg) {
 
 // =====================================================================
 //  PART B — YOUR ARTWORK
-//  Paste Qwen's answer BELOW this line.
-//  Every new step: delete everything below this line, then paste the
-//  new answer.
 // =====================================================================
-
-// PART B
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -114,25 +108,42 @@ function draw() {
     drawCamera();
   }
 
-  noStroke();
-  fill(255);
-
-  if (!hands) {
+  // 确保有手的数据
+  if (!hands || hands.length === 0) {
     return;
   }
 
+  // 遍历每一只手，实现多点触控
   for (let hand of hands) {
-    if (!hand) {
+    if (!hand || hand.length < 10) {
       continue;
     }
 
-    for (let i = 0; i < 21; i++) {
-      let p = hand[i];
-      if (p) {
-        circle(p.x, p.y, 8);
-      }
+    const wrist = hand[WRIST];
+    const palm = hand[MIDDLE_BASE];
+    const thumb = hand[THUMB_TIP];
+    const index = hand[INDEX_TIP];
+
+    if (!wrist || !palm || !thumb || !index) {
+      continue;
     }
+
+    const handSize = dist(wrist.x, wrist.y, palm.x, palm.y);
+    const pinchDistance = dist(thumb.x, thumb.y, index.x, index.y);
+    const isPinching = handSize > 0 && pinchDistance / handSize < 0.3;
+
+    const px = (thumb.x + index.x) / 2;
+    const py = (thumb.y + index.y) / 2;
+
+    noFill();
+    stroke(241, 234, 216, 180);
+    strokeWeight(2);
+    circle(px, py, isPinching ? 16 : 34);
   }
+  
+  // 恢复默认设置
+  noStroke();
+  fill(255);
 }
 
 function keyPressed() {
@@ -144,5 +155,3 @@ function keyPressed() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
-
-
