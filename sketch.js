@@ -81,6 +81,7 @@ function setStatus(msg) {
 //  Every new step: delete everything below this line, then paste the
 //  new answer.
 // =====================================================================
+
 // PART B
 
 function setup() {
@@ -143,3 +144,6 @@ function keyPressed() {
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
+=======
+```
+>>>>>>> af2164576bc5c6146340745fc20577becd8d0cca
