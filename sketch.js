@@ -1,4 +1,4 @@
-```javascript
+
 // =====================================================================
 //  STARTER FILE
 //  PART A (below) is the hand-tracking engine. Don't change it.
