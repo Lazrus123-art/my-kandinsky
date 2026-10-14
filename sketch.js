@@ -81,4 +81,65 @@ function setStatus(msg) {
 //  Every new step: delete everything below this line, then paste the
 //  new answer.
 // =====================================================================
-```
+// PART B
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  noStroke();
+  select("#start").mouseClicked(startExperience);
+}
+
+function startExperience() {
+  userStartAudio();
+  video = createCapture(VIDEO);
+  video.size(640, 480);
+  video.hide();
+
+  select("#intro").hide();
+  started = true;
+  loadHandLandmarker();
+}
+
+function draw() {
+  background(12, 18, 38);
+
+  if (started === false) {
+    return;
+  }
+
+  updateHands();
+
+  if (showCamera === true) {
+    drawCamera();
+  }
+
+  noStroke();
+  fill(255);
+
+  if (!hands) {
+    return;
+  }
+
+  for (let hand of hands) {
+    if (!hand) {
+      continue;
+    }
+
+    for (let i = 0; i < 21; i++) {
+      let p = hand[i];
+      if (p) {
+        circle(p.x, p.y, 8);
+      }
+    }
+  }
+}
+
+function keyPressed() {
+  if (key === "v" || key === "V") {
+    showCamera = !showCamera;
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
